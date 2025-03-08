@@ -34,8 +34,8 @@ This project demonstrates how to load and display 3D models using WebGPU. Featur
 
 1. **Clone the repository**:
 ```bash
-git clone https://github.com/your-repo/webgpu-obj-viewer.git
-cd webgpu-obj-viewer
+git clone https://github.com/albbra/WebGPU-OBJ-Mesh-Viewer.git
+cd WebGPU-OBJ-Mesh-Viewer
 ```
 
 ### 2. Open the Project in VSCode

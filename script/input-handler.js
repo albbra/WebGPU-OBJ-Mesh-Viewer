@@ -1,9 +1,9 @@
 export class InputHandler {
   constructor(canvas) {
     // Rotation state
-    this.rotXAngle = 0;  // X-axis rotation
-    this.rotYAngle = 0;  // Y-axis rotation
-    this.cameraZ = 0;    // Camera distance
+    this.rotXAngle = 0; // X-axis rotation
+    this.rotYAngle = 0; // Y-axis rotation
+    this.cameraZ = 0; // Camera distance
     this.modelRadius = 0;
 
     // Mouse drag state
@@ -30,13 +30,13 @@ export class InputHandler {
 
   handleMouseMove(e) {
     if (!this.isDragging) return;
-    
+
     const dx = e.clientX - this.lastMouseX;
     const dy = e.clientY - this.lastMouseY;
-    
+
     this.rotYAngle += dx * 0.01;
     this.rotXAngle += dy * 0.01;
-    
+
     [this.lastMouseX, this.lastMouseY] = [e.clientX, e.clientY];
   }
 
@@ -46,7 +46,7 @@ export class InputHandler {
 
   handleKeyPress(e) {
     if (!this.modelRadius) return;
-    
+
     const step = this.modelRadius * 0.2;
     const minZ = this.modelRadius * 0.5;
     const maxZ = this.modelRadius * 10;

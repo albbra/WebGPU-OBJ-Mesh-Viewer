@@ -30,7 +30,10 @@ export class TransformController {
       TransformController.FAR_CLIP
     );
 
-    const mvp = multiplyMatrices(multiplyMatrices(modelMatrix, viewMatrix), projMatrix);
+    const mvp = multiplyMatrices(
+      multiplyMatrices(modelMatrix, viewMatrix),
+      projMatrix
+    );
     this.updateUniforms(mvp, modelMatrix);
   }
 
@@ -48,7 +51,7 @@ export class TransformController {
   updateUniforms(mvpMatrix, modelMatrix) {
     const cameraPos = [0, 0, this.input.cameraZ];
     const lightPos = [0, this.input.cameraZ * 0.5, this.input.cameraZ];
-    
+
     const buffer = new Float32Array(40);
     buffer.set(mvpMatrix, 0);
     buffer.set(modelMatrix, 16);

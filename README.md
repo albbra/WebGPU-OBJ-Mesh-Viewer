@@ -81,8 +81,8 @@ WebGPU-Cube/
 │       └── license.txt         # Model usage terms
 ├── scripts/                    # JavaScript source files
 │   ├── math/
-│       ├── math4x4.js
-│       └── vec3.js
+│   │   ├── math4x4.js
+│   │   └── vec3.js
 │   ├── input-handler.js        # Mouse/keyboard input handling
 │   ├── main.js                 # Application entry point
 │   ├── obj-loader.js
@@ -96,7 +96,7 @@ WebGPU-Cube/
 ├── style/
 │   └── style.css               # CSS styles
 ├── index.html                  # Main HTML entry point
-└── README.md                   # Project documentation
+└── README.md                   # this Document
 ```
 
 ## Controls

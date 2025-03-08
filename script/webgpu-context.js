@@ -4,7 +4,7 @@ import { TextureManager } from "./texture-manager.js";
 
 export class WebGPUContext {
   static VERTEX_STRIDE = 32; // 3(pos) + 3(normal) + 2(texcoord) = 8 floats (32 bytes)
-  static DEPTH_FORMAT = 'depth24plus';
+  static DEPTH_FORMAT = "depth24plus";
 
   constructor(canvas) {
     this.canvas = canvas;
@@ -41,21 +41,25 @@ export class WebGPUContext {
   }
 
   async configureCanvasContext() {
-    const context = this.canvas.getContext('webgpu');
+    const context = this.canvas.getContext("webgpu");
     const format = navigator.gpu.getPreferredCanvasFormat();
-    
+
     context.configure({
       device: this.device,
       format: format,
-      alphaMode: 'premultiplied',
+      alphaMode: "premultiplied",
     });
 
     this.textureManager.createDepthTexture();
   }
 
   cleanup() {
-    [this.vertexBuffer, this.indexBuffer, this.uniformBuffer, this.depthTexture]
-      .forEach(resource => resource?.destroy());
+    [
+      this.vertexBuffer,
+      this.indexBuffer,
+      this.uniformBuffer,
+      this.depthTexture,
+    ].forEach((resource) => resource?.destroy());
   }
 
   resize() {
@@ -73,7 +77,7 @@ export class WebGPUContext {
   async createRenderPipeline(shaderModule) {
     const bindGroupLayout = this.pipelineManager.createBindGroupLayout();
     this.pipelineManager.createBindGroup(bindGroupLayout);
-    
+
     this.pipeline = this.device.createRenderPipeline({
       layout: this.pipelineManager.createPipelineLayout(bindGroupLayout),
       vertex: this.pipelineManager.createVertexState(shaderModule),

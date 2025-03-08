@@ -13,15 +13,17 @@ async function initApp() {
 
   try {
     await webGPU.initialize();
-    const { model, shader } = await AssetLoader.loadAll(webGPU.device, MODEL_PATH);
-    
+    const { model, shader } = await AssetLoader.loadAll(
+      webGPU.device,
+      MODEL_PATH
+    );
+
     webGPU.createModelBuffers(model);
     await webGPU.createRenderPipeline(shader);
-    
+
     initCamera(input, model);
     startRendering(webGPU, input);
     initWindowHandlers(canvas, webGPU);
-
   } catch (error) {
     console.error("App initialization failed:", error);
   }
@@ -36,7 +38,7 @@ function initCanvas() {
 
 function initCamera(input, model) {
   input.modelRadius = model.radius;
-  input.cameraZ = model.radius / Math.tan(Math.PI/8) * 1.2;
+  input.cameraZ = (model.radius / Math.tan(Math.PI / 8)) * 1.2;
 }
 
 function startRendering(webGPU, input) {

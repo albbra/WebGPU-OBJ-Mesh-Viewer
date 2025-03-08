@@ -1,4 +1,3 @@
-
 // Rendering loop manager
 export class RenderLoop {
   constructor(webGPUContext, transformController) {
@@ -56,7 +55,9 @@ export class RenderLoop {
     renderPass.setIndexBuffer(this.webGPU.indexBuffer, "uint32");
 
     // Draw indexed geometry
-    renderPass.drawIndexed(this.webGPU.indexBuffer.size / Uint32Array.BYTES_PER_ELEMENT);
+    renderPass.drawIndexed(
+      this.webGPU.indexBuffer.size / Uint32Array.BYTES_PER_ELEMENT
+    );
 
     // Submit commands
     renderPass.end();

@@ -6,6 +6,8 @@ import { ShaderLoader } from "./shader-loader.js";
 import { OBJLoader } from "./obj-loader.js";
 
 async function initWebGPU() {
+  const MODEL_PATH = "../models/stanford_dragon_vrip/dragon.obj";
+
   try {
     // Canvas setup
     const canvas = document.getElementById("webgpuCanvas");
@@ -21,7 +23,7 @@ async function initWebGPU() {
     await webGPU.initialize();
 
     // Load OBJ model
-    const model = await OBJLoader.loadModel(webGPU.device, "../models/stanford_dragon_vrip/dragon.obj");
+    const model = await OBJLoader.loadModel(webGPU.device, MODEL_PATH);
     webGPU.createBuffers(model);
     input.modelRadius = model.radius;
     input.cameraZ = model.radius / Math.tan(Math.PI/8) * 1.2;

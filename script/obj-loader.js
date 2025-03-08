@@ -1,144 +1,168 @@
 import { crossProduct, normalize, addVectors } from "./math/vec3.js";
 
+// Helper functions for OBJ parsing
+const parseOBJLine = (line) => line.trim().split(/\s+/);
+const createBoundingBox = () => ({
+  min: [Infinity, Infinity, Infinity],
+  max: [-Infinity, -Infinity, -Infinity]
+});
+
 export class OBJLoader {
   static async loadModel(device, url) {
     const response = await fetch(url);
     const text = await response.text();
     const lines = text.split("\n");
 
-    // Data storage
-    const positions = [];
-    const texcoords = [];
-    const normals = [];
-    const vertices = [];
-    const indices = [];
-    const indexMap = new Map();
+    // Geometry data stores
+    const state = {
+      positions: [],
+      texcoords: [],
+      normals: [],
+      vertices: [],
+      indices: [],
+      indexMap: new Map(),
+      faceTriangles: [],
+      bounds: createBoundingBox()
+    };
 
-    // Temporary storage for face processing
-    const faceTriangles = [];
-    const positionIndicesMap = new Map();
-
-    // Bounding box tracking
-    let min = [Infinity, Infinity, Infinity];
-    let max = [-Infinity, -Infinity, -Infinity];
-
-    // First pass: collect geometry and faces
-    for (const line of lines) {
-      const parts = line.trim().split(/\s+/);
-      if (parts.length < 1) continue;
-
-      switch (parts[0]) {
-        case "v": {
-          const pos = parts.slice(1, 4).map(Number);
-          positions.push(pos);
-          min = min.map((v, i) => Math.min(v, pos[i]));
-          max = max.map((v, i) => Math.max(v, pos[i]));
-          break;
-        }
-        case "vt": {
-          texcoords.push(parts.slice(1, 3).map(Number));
-          break;
-        }
-        case "vn": {
-          normals.push(parts.slice(1, 4).map(Number));
-          break;
-        }
-        case "f": {
-          const faceVerts = [];
-          for (let i = 1; i < parts.length; i++) {
-            const indices = parts[i].split("/").map((str) => {
-              const num = parseInt(str, 10);
-              return isNaN(num) ? 0 : num;
-            });
-            faceVerts.push(indices);
-          }
-          // Triangulate face
-          for (let i = 2; i < faceVerts.length; i++) {
-            faceTriangles.push([faceVerts[0], faceVerts[i - 1], faceVerts[i]]);
-          }
-          break;
-        }
-      }
-    }
+    // First pass: parse geometry and triangulate faces
+    this.parseGeometry(lines, state);
 
     // Calculate normals if missing
-    if (normals.length === 0) {
-      const vertexNormals = new Array(positions.length)
-        .fill()
-        .map(() => [0, 0, 0]);
-
-      for (const triangle of faceTriangles) {
-        // Get position indices for the triangle
-        const v0 = this.parseIndex(triangle[0][0], positions);
-        const v1 = this.parseIndex(triangle[1][0], positions);
-        const v2 = this.parseIndex(triangle[2][0], positions);
-
-        // Calculate face normal
-        const p0 = positions[v0];
-        const p1 = positions[v1];
-        const p2 = positions[v2];
-
-        const vecA = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]];
-        const vecB = [p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]];
-        const normal = crossProduct(vecA, vecB);
-        normalize(normal);
-
-        // Accumulate normals for each vertex
-        vertexNormals[v0] = addVectors(vertexNormals[v0], normal);
-        vertexNormals[v1] = addVectors(vertexNormals[v1], normal);
-        vertexNormals[v2] = addVectors(vertexNormals[v2], normal);
-      }
-
-      // Normalize and store computed normals
-      normals.length = 0;
-      vertexNormals.forEach((n) => {
-        normalize(n);
-        normals.push(n);
-      });
+    if (state.normals.length === 0) {
+      this.calculateVertexNormals(state);
     }
 
-    // Second pass: build vertex data
-    for (const triangle of faceTriangles) {
-      for (const vertexDef of triangle) {
-        const [posIdx, texIdx, normIdx] = vertexDef;
+    // Second pass: build interleaved vertex buffer
+    this.buildVertexBuffer(state);
 
-        // Handle indices with proper OBJ indexing
-        const posIndex = this.parseIndex(posIdx, positions);
-        const texIndex = texIdx ? this.parseIndex(texIdx, texcoords) : null;
-        const normIndex = normIdx
-          ? this.parseIndex(normIdx, normals)
-          : posIndex;
-
-        // Get actual data
-        const pos = positions[posIndex];
-        const tex = texIndex !== null ? texcoords[texIndex] : [0, 0];
-        const nor = normals[normIndex];
-
-        // Create unique key for this vertex combination
-        const key = `${posIndex}/${texIndex}/${normIndex}`;
-
-        if (!indexMap.has(key)) {
-          vertices.push(...pos, ...nor, ...tex);
-          indexMap.set(key, vertices.length / 8 - 1);
-        }
-        indices.push(indexMap.get(key));
-      }
-    }
-
-    // Rest of the existing code...
     return {
-      vertexData: new Float32Array(vertices),
-      indexData: new Uint32Array(indices),
-      center: min.map((minVal, i) => (minVal + max[i]) / 2),
-      radius:
-        Math.sqrt(max.reduce((sum, val, i) => sum + (val - min[i]) ** 2, 0)) /
-        2,
+      vertexData: new Float32Array(state.vertices),
+      indexData: new Uint32Array(state.indices),
+      center: this.calculateCenter(state.bounds),
+      radius: this.calculateBoundingRadius(state.bounds)
     };
   }
 
-  // Helper methods
+  static parseGeometry(lines, state) {
+    for (const line of lines) {
+      const parts = parseOBJLine(line);
+      if (parts.length === 0) continue;
+
+      switch (parts[0]) {
+        case "v":  this.parseVertex(parts, state); break;
+        case "vt": this.parseTexCoord(parts, state); break;
+        case "vn": this.parseNormal(parts, state); break;
+        case "f":  this.parseFace(parts, state); break;
+      }
+    }
+  }
+
+  static parseVertex(parts, state) {
+    const position = parts.slice(1, 4).map(Number);
+    state.positions.push(position);
+    
+    // Update bounding box
+    state.bounds.min = state.bounds.min.map((v, i) => Math.min(v, position[i]));
+    state.bounds.max = state.bounds.max.map((v, i) => Math.max(v, position[i]));
+  }
+
+  static parseTexCoord(parts, state) {
+    state.texcoords.push(parts.slice(1, 3).map(Number));
+  }
+
+  static parseNormal(parts, state) {
+    state.normals.push(parts.slice(1, 4).map(Number));
+  }
+
+  static parseFace(parts, state) {
+    const faceVertices = parts.slice(1).map(v => {
+      return v.split("/").map(str => {
+        const num = parseInt(str, 10);
+        return isNaN(num) ? 0 : num;
+      });
+    });
+
+    // Triangulate n-gon into triangles
+    for (let i = 2; i < faceVertices.length; i++) {
+      state.faceTriangles.push([
+        faceVertices[0],
+        faceVertices[i - 1],
+        faceVertices[i]
+      ]);
+    }
+  }
+
+  static calculateVertexNormals(state) {
+    const vertexNormals = new Array(state.positions.length)
+      .fill().map(() => [0, 0, 0]);
+
+    for (const triangle of state.faceTriangles) {
+      const [v0, v1, v2] = triangle.map(t => this.parseIndex(t[0], state.positions));
+      const normal = this.calculateFaceNormal(
+        state.positions[v0],
+        state.positions[v1],
+        state.positions[v2]
+      );
+
+      [v0, v1, v2].forEach(vi => {
+        vertexNormals[vi] = addVectors(vertexNormals[vi], normal);
+      });
+    }
+
+    // Normalize and store
+    state.normals = vertexNormals.map(n => {
+      normalize(n);
+      return n;
+    });
+  }
+
+  static calculateFaceNormal(p0, p1, p2) {
+    const vecA = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]];
+    const vecB = [p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]];
+    const normal = crossProduct(vecA, vecB);
+    return normalize(normal);
+  }
+
+  static buildVertexBuffer(state) {
+    const vertexSize = 8; // 3 pos + 3 normal + 2 texcoord
+
+    for (const triangle of state.faceTriangles) {
+      for (const vertexDef of triangle) {
+        const [posIdx, texIdx, normIdx] = vertexDef;
+
+        const posIndex = this.parseIndex(posIdx, state.positions);
+        const texIndex = texIdx ? this.parseIndex(texIdx, state.texcoords) : null;
+        const normIndex = normIdx ? this.parseIndex(normIdx, state.normals) : posIndex;
+
+        const key = `${posIndex}/${texIndex}/${normIndex}`;
+
+        if (!state.indexMap.has(key)) {
+          const position = state.positions[posIndex];
+          const normal = state.normals[normIndex];
+          const texCoord = texIndex !== null ? state.texcoords[texIndex] : [0, 0];
+          
+          state.vertices.push(...position, ...normal, ...texCoord);
+          state.indexMap.set(key, state.vertices.length / vertexSize - 1);
+        }
+
+        state.indices.push(state.indexMap.get(key));
+      }
+    }
+  }
+
+  static calculateCenter(bounds) {
+    return bounds.min.map((minVal, i) => (minVal + bounds.max[i]) / 2);
+  }
+
+  static calculateBoundingRadius(bounds) {
+    const diagonal = bounds.max.reduce(
+      (sum, val, i) => sum + (val - bounds.min[i]) ** 2, 0
+    );
+    return Math.sqrt(diagonal) / 2;
+  }
+
   static parseIndex(index, array) {
-    if (index < 0) return array.length + index;
-    return index - 1;
+    return index < 0 ? array.length + index : index - 1;
   }
 }

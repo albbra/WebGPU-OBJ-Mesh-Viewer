@@ -26,6 +26,7 @@ export class InputHandler {
 
     // Initialize event listeners
     this.initControls(canvas);
+    this.initUIControls();
   }
 
   // Set up input event handlers
@@ -67,4 +68,76 @@ export class InputHandler {
     if (e.key === "w") this.cameraZ = Math.max(minZ, this.cameraZ - step);
     if (e.key === "s") this.cameraZ = Math.min(maxZ, this.cameraZ + step);
   }
+
+  initUIControls() {
+    // Get DOM elements
+    this.uiElements = {
+      lightAzimuth: document.getElementById("lightAzimuth"),
+      lightElevation: document.getElementById("lightElevation"),
+      lightDistance: document.getElementById("lightDistance"),
+      ambientColor: document.getElementById("ambientColor"),
+      diffuseColor: document.getElementById("diffuseColor"),
+      specularColor: document.getElementById("specularColor"),
+      specularPower: document.getElementById("specularPower"),
+      backgroundColor: document.getElementById("backgroundColor")
+    };
+
+    // Validate elements
+    for (const [key, element] of Object.entries(this.uiElements)) {
+      if (!element) throw new Error(`Missing UI element: ${key}`);
+    }
+
+    // Initialize values and listeners
+    this.setupUIListeners();
+    this.syncInitialValues();
+  }
+
+  setupUIListeners() {
+    const updateUI = () => {
+      this.lightAzimuth = parseFloat(this.uiElements.lightAzimuth.value);
+      this.lightElevation = parseFloat(this.uiElements.lightElevation.value);
+      this.lightDistance = parseFloat(this.uiElements.lightDistance.value);
+
+      this.ambientColor = this.hexToVec3(this.uiElements.ambientColor.value);
+      this.diffuseColor = this.hexToVec3(this.uiElements.diffuseColor.value);
+      this.specularColor = this.hexToVec3(this.uiElements.specularColor.value);
+      this.specularPower = parseFloat(this.uiElements.specularPower.value);
+      this.backgroundColor = this.hexToVec3(this.uiElements.backgroundColor.value);
+    };
+
+    ["input", "change"].forEach(evt => {
+      Object.values(this.uiElements).forEach(element => {
+        element.addEventListener(evt, updateUI);
+      });
+    });
+
+    updateUI();
+  }
+
+  syncInitialValues() {
+    // Set UI from initial state
+    this.uiElements.lightAzimuth.value = this.lightAzimuth;
+    this.uiElements.lightElevation.value = this.lightElevation;
+    this.uiElements.lightDistance.value = this.lightDistance;
+
+    this.uiElements.ambientColor.value = this.vec3ToHex(this.ambientColor);
+    this.uiElements.diffuseColor.value = this.vec3ToHex(this.diffuseColor);
+    this.uiElements.specularColor.value = this.vec3ToHex(this.specularColor);
+    this.uiElements.specularPower.value = this.specularPower;
+    this.uiElements.backgroundColor.value = this.vec3ToHex(this.backgroundColor);
+  }
+
+  hexToVec3(hex) {
+    return [
+      parseInt(hex.slice(1, 3), 16) / 255,
+      parseInt(hex.slice(3, 5), 16) / 255,
+      parseInt(hex.slice(5, 7), 16) / 255,
+    ];
+  }
+
+  vec3ToHex(colorArray) {
+    const toHex = (c) => Math.round(c * 255).toString(16).padStart(2, "0");
+    return `#${toHex(colorArray[0])}${toHex(colorArray[1])}${toHex(colorArray[2])}`;
+  }
 }
+

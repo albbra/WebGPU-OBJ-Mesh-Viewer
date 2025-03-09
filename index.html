@@ -8,5 +8,20 @@
   <body>
     <canvas id="webgpuCanvas"></canvas>
     <script type="module" src="script/main.js"></script>
+    <div id="lightControls">
+        <p>Light Controls</p>
+        <label>Azimuth: <input type="range" id="lightAzimuth" min="0" max="360" value="45"></label>
+        <label>Elevation: <input type="range" id="lightElevation" min="0" max="180" value="30"></label>
+        <label>Distance: <input type="range" id="lightDistance" min="0.5" max="3" step="0.1" value="1.5"></label>
+
+        <p> Mesh Colors</p>
+        <label>Ambient: <input type="color" id="ambientColor" value="#191919"></label>
+        <label>Diffuse: <input type="color" id="diffuseColor" value="#0000ff"></label>
+        <label>Specular: <input type="color" id="specularColor" value="#ffffff"></label>
+        <label>Specular Power: <input type="range" id="specularPower" min="1" max="256" value="32"></label>
+
+        <p> Background Color</p>
+        <label>Color: <input type="color" id="backgroundColor" value="#808080"></label>
+    </div>
   </body>
 </html>

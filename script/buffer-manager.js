@@ -41,7 +41,7 @@ export class BufferManager {
 
   createUniformBuffer() {
     this.context.uniformBuffer = this.context.device.createBuffer({
-      size: 160, // Space for MVP + model matrices + camera/light positions
+      size: 224, // 56 floats * 4 bytes
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
   }

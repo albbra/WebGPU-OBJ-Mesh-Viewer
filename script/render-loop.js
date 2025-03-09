@@ -35,7 +35,12 @@ export class RenderLoop {
             .getContext("webgpu")
             .getCurrentTexture()
             .createView(),
-          clearValue: { r: 0.5, g: 0.5, b: 0.5, a: 1 },
+          clearValue: {
+            r: this.transform.input.backgroundColor[0],
+            g: this.transform.input.backgroundColor[1],
+            b: this.transform.input.backgroundColor[2],
+            a: 1,
+          },
           loadOp: "clear",
           storeOp: "store",
         },

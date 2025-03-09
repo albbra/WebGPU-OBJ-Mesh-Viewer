@@ -1,6 +1,6 @@
 # WebGPU OBJ Mesh Viewer
 
-This project demonstrates how to load and display 3D models using WebGPU. Features real-time manipulation of the Stanford Dragon model with mouse controls and camera movement.
+This project demonstrates how to load and display 3D models using WebGPU. Features real-time manipulation of the Stanford Dragon model with interactive lighting controls and material properties adjustment.
 
 ## Table of Contents
 
@@ -20,8 +20,12 @@ This project demonstrates how to load and display 3D models using WebGPU. Featur
 - Real-time model manipulation:
   - Rotate with mouse drag
   - Zoom with W/S keys
+- Interactive lighting controls:
+  - Adjust light position (azimuth, elevation, distance)
+  - Modify material properties (ambient/diffuse/specular colors)
+  - Control specular highlight intensity
+  - Change background color
 - WebGPU-based rendering pipeline
-- Proper depth testing and camera controls
 - Adaptive resolution for window resizing
 
 ## Prerequisites
@@ -101,9 +105,28 @@ WebGPU-Cube/
 
 ## Controls
 
-- **Mouse Drag:** Rotate model.
-- **W Key:** Move the camera closer to the model.
-- **S Key:** Move the camera away from the model.
+### Model Manipulation
+
+- **Mouse Drag:** Rotate model
+- **W Key:** Zoom in
+- **S Key:** Zoom out
+
+### Lighting Controls
+
+- **Azimuth:** Horizontal light angle (0-360°)
+- **Elevation:** Vertical light angle (0-180°)
+- **Distance:** Light distance from model (0.5x-3x model radius)
+
+### Material Properties
+
+- **Ambient:** Base color of unlit areas (color picker)
+- **Diffuse:** Main surface color (color picker)
+- **Specular:** Highlight color (color picker)
+- **Specular Power:** Highlight sharpness (1-256 slider)
+
+### Environment
+
+- **Background Color:** Canvas background color (color picker)
 
 ## Troubleshooting
 

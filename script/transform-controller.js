@@ -50,13 +50,31 @@ export class TransformController {
 
   updateUniforms(mvpMatrix, modelMatrix) {
     const cameraPos = [0, 0, this.input.cameraZ];
-    const lightPos = [0, this.input.cameraZ * 0.5, this.input.cameraZ];
 
-    const buffer = new Float32Array(40);
+    const modelRadius = this.webGPU.modelData.radius;
+
+    // Convert to spherical coordinates
+    const theta = this.input.lightAzimuth * (Math.PI / 180);
+    const phi = this.input.lightElevation * (Math.PI / 180);
+    const distance = modelRadius * this.input.lightDistance;
+
+    // Calculate light position
+    const lightPos = [
+      distance * Math.sin(phi) * Math.cos(theta),
+      distance * Math.cos(phi),
+      distance * Math.sin(phi) * Math.sin(theta),
+    ];
+
+    const buffer = new Float32Array(56);
     buffer.set(mvpMatrix, 0);
     buffer.set(modelMatrix, 16);
     buffer.set([...cameraPos, 0], 32);
     buffer.set([...lightPos, 0], 36);
+
+    buffer.set(this.input.ambientColor, 40);
+    buffer.set(this.input.diffuseColor, 44);
+    buffer.set(this.input.specularColor, 48);
+    buffer.set([this.input.specularPower, 0, 0, 0], 52);
 
     this.webGPU.device.queue.writeBuffer(
       this.webGPU.uniformBuffer,

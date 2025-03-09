@@ -11,6 +11,19 @@ export class InputHandler {
     this.lastMouseX = 0;
     this.lastMouseY = 0;
 
+    // Light rotation parameters
+    this.lightAzimuth = 45; // Horizontal angle (degrees)
+    this.lightElevation = 30; // Vertical angle (degrees)
+    this.lightDistance = 1.5; // Multiplier of model radius
+
+    // Lighting properties
+    this.ambientColor = [0.1, 0.1, 0.1];
+    this.diffuseColor = [0.0, 0.0, 1.0];
+    this.specularColor = [1.0, 1.0, 1.0];
+    this.specularPower = 32.0;
+
+    this.backgroundColor = [0.5, 0.5, 0.5];
+
     // Initialize event listeners
     this.initControls(canvas);
   }
